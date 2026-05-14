@@ -30,8 +30,7 @@
 
             @include('components.partials.header')
 
-            <div class="main-scroll">
-
+<div class="main-scroll overflow-y-auto min-h-screen p-6">
                 @if(session('success'))
                 <div class="alert alert-success mb-4 rounded-xl shadow-sm">
                     <i class="fas fa-check-circle"></i>
