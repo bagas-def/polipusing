@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+   class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -18,9 +18,16 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'nama',
+        'alamat',
+        'no_ktp',
+        'no_hp',
+        'no_rm',
+        'role',
+        'id_poli',
         'email',
         'password',
+
     ];
 
     /**
@@ -45,4 +52,16 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function poli()
+    {
+        return $this->belongsTo(Poli::class, 'id_poli');
+    }
+
+    public function jadwalPeriksa()
+    {
+        return $this->hasMany(JadwalPeriksa::class, 'id_dokter');
+    }
+
 }
+
