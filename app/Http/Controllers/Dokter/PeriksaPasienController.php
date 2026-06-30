@@ -29,6 +29,7 @@ class PeriksaPasienController extends Controller
     public function create($id)
     {
         $obats = Obat::all();
+
         return view('dokter.periksa-pasien.create', compact('obats', 'id'));
     }
 
@@ -40,7 +41,31 @@ class PeriksaPasienController extends Controller
             'biaya_periksa' => 'required|integer',
         ]);
 
-        $obatIds = json_decode($request->obat_json, true);
+        $obatData = json_decode($request->obat_json, true);
+
+        // ============================
+        // VALIDASI STOK
+        // ============================
+
+        foreach ($obatData as $item) {
+
+            $obat = Obat::find($item['id']);
+
+            if (!$obat) {
+                return back()->with('error', 'Obat tidak ditemukan.');
+            }
+
+            if ($obat->stok < $item['jumlah']) {
+                return back()->with(
+                    'error',
+                    'Stok obat '.$obat->nama_obat.' tidak mencukupi.'
+                );
+            }
+        }
+
+        // ============================
+        // SIMPAN DATA PEMERIKSAAN
+        // ============================
 
         $periksa = Periksa::create([
             'id_daftar_poli' => $request->id_daftar_poli,
@@ -49,13 +74,27 @@ class PeriksaPasienController extends Controller
             'biaya_periksa' => $request->biaya_periksa + 150000,
         ]);
 
-        foreach ($obatIds as $idObat) {
+        // ============================
+        // SIMPAN DETAIL + KURANGI STOK
+        // ============================
+
+        foreach ($obatData as $item) {
+
             DetailPeriksa::create([
                 'id_periksa' => $periksa->id,
-                'id_obat' => $idObat,
+                'id_obat' => $item['id'],
+                'jumlah' => $item['jumlah'],
             ]);
+
+            $obat = Obat::find($item['id']);
+
+            $obat->stok -= $item['jumlah'];
+
+            $obat->save();
         }
 
-        return redirect()->route('periksa-pasien.index')->with('success', 'Data periksa berhasil disimpan.');
+        return redirect()
+            ->route('periksa-pasien.index')
+            ->with('success', 'Data pemeriksaan berhasil disimpan.');
     }
 }
